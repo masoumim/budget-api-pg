@@ -1,6 +1,13 @@
 // Require in express module
 const express = require('express');
 
+// Require in the dotenv module
+// Will load environment variables contained in config.env
+require('dotenv').config();
+
+// Require in the services module which contains all the methods for interacting the the PostgreSQL db
+const services = require('./services/requests')
+
 // Create instance of an express module
 const app = express();
 
