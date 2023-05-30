@@ -1,12 +1,12 @@
+// Require in the dotenv module
+// Will load environment variables contained in .env file
+require('dotenv').config();
+
 // Require in express module
 const express = require('express');
 
-// Require in the dotenv module
-// Will load environment variables contained in config.env
-require('dotenv').config();
-
 // Require in the services module which contains all the methods for interacting the the PostgreSQL db
-const services = require('./services/requests')
+const services = require('./services/requests.js');
 
 // Create instance of an express module
 const app = express();
@@ -25,3 +25,6 @@ app.use('/api',apiRouter);
 app.listen(PORT, () => {
     console.log(`server is listening on ${PORT}`);
 });
+
+// Test connection to Heroku DB
+services.testQuery;
