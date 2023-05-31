@@ -84,7 +84,7 @@ userRouter.post('/', (req, res, next) => {
     }
 });
 
-// PUT routes - update a user's name
+// PUT - update a user's name
 userRouter.put('/:userId', (req, res, next) => {
     // Check if the body's ID matches the URL param ID
     if (req.body.id === Number(req.params.userId)) {
@@ -97,14 +97,14 @@ userRouter.put('/:userId', (req, res, next) => {
     }
 });
 
-// DELTE routes
+// DELTE user
 userRouter.delete('/:userId', (req, res, next) => {
-    // Delete budget objects belonging to this user.
-    budgetModule.deleteBudgets(req.params.userId);
+    // TODO: Delete budget objects belonging to this user.
+    // budgetModule.deleteBudgets(req.params.userId);
     
-    // Delete user obj
-    users.splice(req.userIndex, 1);
-    res.status(200).send();
+    // Delete user
+    services.deleteUser(req.params.userId);
+    res.status(200).send("User deleted successfully");
 });
 
 // Export userRouter

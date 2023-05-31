@@ -43,7 +43,10 @@ const updateUser = async (user) =>{
     await pool.query(updateQuery);
 }
 
+// DELETE USER
+const deleteUser = async (id) =>{
+    const deleteQuery = `DELETE FROM app_user WHERE id=${id};`;
+    await pool.query(deleteQuery);
+}
 
-
-
-module.exports = { addUser, getAllUsers, updateUser }
+module.exports = { addUser, getAllUsers, updateUser, deleteUser }
