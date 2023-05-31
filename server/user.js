@@ -23,7 +23,6 @@ const userRouter = express.Router();
 // This now allows for a new route like: '/users/1/budgets'
 // The result is that accessing the route: 'api/users/:userId/budgets',
 // will trigger the budgetRouter's HTTP route handlers.
-// const budgetRouter = require('./budget.js');
 userRouter.use('/:userId/budgets', budgetModule.budgetRouter);
 
 // Intercept any request to a route handler with the :userId parameter,

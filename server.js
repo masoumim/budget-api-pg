@@ -26,5 +26,5 @@ app.listen(PORT, () => {
     console.log(`server is listening on ${PORT}`);
 });
 
-// Test connection to Heroku DB
-services.testQuery;
+// Test connection to Heroku Postgres DB
+// services.testQuery();

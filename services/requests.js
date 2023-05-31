@@ -9,12 +9,14 @@ const pool = new Pool({
 
 pool.connect();
 
-const testQuery = pool.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
-    if (err) throw err;
-    for (let row of res.rows) {
-        console.log(JSON.stringify(row));
-    }
-    pool.end();
-});
+const testQuery = (req, res) => {
+    pool.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
+        if (err) throw err;
+        for (let row of res.rows) {
+            console.log(JSON.stringify(row));
+        }
+        pool.end();
+    });
+}
 
 module.exports = { testQuery }

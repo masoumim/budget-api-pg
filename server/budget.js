@@ -95,23 +95,28 @@ budgetRouter.post('/', (req, res, next) => {
 });
 
 // POST - transfer money between budgets
+// example: /api//users/1/budgets/transfer/1/2
 budgetRouter.post('/transfer/:from/:to', (req, res, next) => {
-
     // Check for userId in the URI
     if (req.params.userId) {
-        // Deduct the amount from a budget if there is enough to deduct
-        if (budgets[Number(req.params.from) - 1].balance >= Number(req.params.from)) {
+        // Check if there are budgets that match the budget id parameters AND those bugdets belong to user.
+        if (budgets[Number(req.params.from - 1)] && budgets[Number(req.params.to - 1)] && budgets[Number(req.params.from - 1)].userId === Number(req.params.userId) && budgets[Number(req.params.to - 1)].userId === Number(req.params.userId)) {
+            // Deduct the amount from a budget if there is enough to deduct
+            if (budgets[Number(req.params.from) - 1].balance >= Number(req.params.from)) {
 
-            // Deduct from budget
-            budgets[Number(req.params.from) - 1].balance -= Number(req.headers.amount);
+                // Deduct from budget
+                budgets[Number(req.params.from) - 1].balance -= Number(req.headers.amount);
 
-            // Add the amount to other budget
-            budgets[Number(req.params.to) - 1].balance += Number(req.headers.amount);
+                // Add the amount to other budget
+                budgets[Number(req.params.to) - 1].balance += Number(req.headers.amount);
 
-            res.status(200).send();
-        }
-        else {
-            res.status(409).send(`Not enough money in ${budgets[Number(req.params.from) - 1].name} budget`);
+                res.status(200).send();
+            }
+            else {
+                res.status(409).send(`Not enough money in ${budgets[Number(req.params.from) - 1].name} budget`);
+            }
+        }else{
+            res.status(409).send("User doesn't have that budget");
         }
     }
     else {
