@@ -4,6 +4,9 @@ const express = require('express');
 // Require in the utilities module
 const utils = require('../utils/utils.js');
 
+// Require in the services/request module that handles interactions with the DB
+const services = require('../services/requests.js');
+
 // Require in the budget module (used for deleting budgets that belong to a given user)
 const budgetModule = require('./budget.js');
 
@@ -50,7 +53,7 @@ userRouter.param('userId', (req, res, next, id) => {
 // GET routes
 userRouter.get('/', (req, res, next) => {
     // Return ALL users
-    res.status(200).send(users);
+    res.status(200).send();
 });
 
 userRouter.get('/:userId', (req, res, next) => {
@@ -61,17 +64,13 @@ userRouter.get('/:userId', (req, res, next) => {
 userRouter.post('/', (req, res, next) => {
     // Check if the request body contains a userName
     if (req.body.userName) {
-        // Generate new ID
-        const newUserId = utils.generateId(users);
-
         // Create new User object using req.body
         const newUser = req.body;
 
-        // Set the ID of the new user
-        newUser.id = newUserId;
+        // Add the user to the db
+        services.addUser(newUser);
 
-        // Add the user object to the users array
-        users.push(newUser);
+        console.log(newUser);
 
         // Send back response along with new user object
         res.status(201).send(newUser);

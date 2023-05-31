@@ -9,6 +9,7 @@ const pool = new Pool({
 
 pool.connect();
 
+// TEST QUERY - TODO: DELETE LATER
 const testQuery = (req, res) => {
     pool.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
         if (err) throw err;
@@ -19,4 +20,17 @@ const testQuery = (req, res) => {
     });
 }
 
-module.exports = { testQuery }
+// GET ALL USERS
+
+
+// ADD USER TO DB
+const addUser = async (req, res) =>{
+    const userName = req.userName;
+    const addQuery = `INSERT INTO app_user (name) VALUES ('${userName}');`;
+    await pool.query(addQuery);   
+}
+
+
+
+
+module.exports = { testQuery, addUser }
