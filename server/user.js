@@ -10,12 +10,6 @@ const services = require('../services/requests.js');
 // Require in the budget module (used for deleting budgets that belong to a given user)
 const budgetModule = require('./budget.js');
 
-// Users array
-const users = [
-    {id: 1, userName: "Default user"},
-    {id: 2, userName: "Default user 2"}
-];
-
 // Create userRouter
 const userRouter = express.Router();
 
@@ -31,53 +25,54 @@ userRouter.use('/:userId/budgets', budgetModule.budgetRouter);
 // Intercept any request to a route handler with the :userId parameter,
 // and check if the userId is valid or not.
 userRouter.param('userId', async (req, res, next, id) => {
-    
-    let userId = Number(id);
-
-    const allUsers = await services.getAllUsers();
-
-    // Check if a user object with this ID already exists
-    const userIndex = allUsers.findIndex((element) => {
-        return Number(element.id) === userId;
-    });
-
-    if (userIndex === -1) {
-        res.status(404).send('That user does not exist');
-    }
-    else {
-        // creates a 'userIndex' on the request parameter and sets it's value.
-        req.userIndex = userIndex;
-        // creates a 'user' on the request parameter and sets it's value.
-        req.user = allUsers[userIndex];
-        next();
+    try {
+        let userId = Number(id);
+        const user = await services.getUser(userId);
+        if (user.rowCount === 1) {
+            // creates a 'user' on the request parameter and sets it's value.
+            req.user = user;
+            next();
+        }
+        else {
+            res.status(404).send("That user does not exist");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
     }
 });
-
 
 // GET all users
 userRouter.get('/', async (req, res, next) => {
     // Return ALL users
-    const allUsers = await services.getAllUsers();
-    res.status(200).send(allUsers);
+    try {
+        const allUsers = await services.getAllUsers();
+        res.status(200).send(allUsers);
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
 });
 
 // GET user by their ID
 userRouter.get('/:userId', (req, res, next) => {
-    res.status(200).send(req.user);
+    res.status(200).send(req.user.rows[0]);
 });
 
 // POST routes
-userRouter.post('/', (req, res, next) => {
+userRouter.post('/', async (req, res, next) => {
     // Check if the request body contains a name
     if (req.body.name) {
-        // Create new User object using req.body
-        const newUser = req.body;
+        try {
+            // Create new User object using req.body
+            const newUser = req.body;
 
-        // Add the user to the db
-        services.addUser(newUser);
+            // Add the user to the db
+            await services.addUser(newUser);
 
-        // Send back response along with new user object
-        res.status(201).send(newUser);
+            // Send back response along with new user object
+            res.status(201).send(newUser);
+        } catch (error) {
+            res.status(500).send(`${error}`);
+        }
     }
     else {
         res.status(409).send("User must have a name");
@@ -85,26 +80,34 @@ userRouter.post('/', (req, res, next) => {
 });
 
 // PUT - update a user's name
-userRouter.put('/:userId', (req, res, next) => {
+userRouter.put('/:userId', async (req, res, next) => {
     // Check if the body's ID matches the URL param ID
     if (req.body.id === Number(req.params.userId)) {
-        const updatedUser = req.body;
-        services.updateUser(updatedUser);
-        res.status(200).send(updatedUser);
+        try {
+            const updatedUser = req.body;
+            await services.updateUser(updatedUser);
+            res.status(200).send(updatedUser);
+        } catch (error) {
+            res.status(500).send(`${error}`);
+        }
     }
     else {
         res.status(409).send("User id in body doesn't match id in URI");
     }
 });
 
-// DELTE user
-userRouter.delete('/:userId', (req, res, next) => {
+// DELETE user
+userRouter.delete('/:userId', async (req, res, next) => {
     // TODO: Delete budget objects belonging to this user.
     // budgetModule.deleteBudgets(req.params.userId);
-    
+
     // Delete user
-    services.deleteUser(req.params.userId);
-    res.status(200).send("User deleted successfully");
+    try {
+        await services.deleteUser(req.params.userId);
+        res.status(200).send("User deleted successfully");
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
 });
 
 // Export userRouter

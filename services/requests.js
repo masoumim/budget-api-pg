@@ -27,12 +27,19 @@ const getAllUsers = async () =>{
     return result.rows;
 }
 
+// GET USER BY ID
+const getUser = async (id) =>{
+    const getUserQuery = `SELECT * FROM app_user WHERE id=${id};`;
+    const result = await pool.query(getUserQuery);
+    return result;
+}
+
 
 // ADD USER TO DB
 const addUser = async (user) =>{
     const name = user.name;
     const addQuery = `INSERT INTO app_user (name) VALUES ('${name}');`;
-    await pool.query(addQuery);   
+    await pool.query(addQuery);
 }
 
 // UPDATE USER
@@ -49,4 +56,4 @@ const deleteUser = async (id) =>{
     await pool.query(deleteQuery);
 }
 
-module.exports = { addUser, getAllUsers, updateUser, deleteUser }
+module.exports = { addUser, getAllUsers, getUser, updateUser, deleteUser }
