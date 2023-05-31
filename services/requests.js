@@ -10,17 +10,22 @@ const pool = new Pool({
 pool.connect();
 
 // TEST QUERY - TODO: DELETE LATER
-const testQuery = (req, res) => {
-    pool.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
-        if (err) throw err;
-        for (let row of res.rows) {
-            console.log(JSON.stringify(row));
-        }
-        pool.end();
-    });
-}
+// const testQuery = (req, res) => {
+//     pool.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
+//         if (err) throw err;
+//         for (let row of res.rows) {
+//             console.log(JSON.stringify(row));
+//         }
+//         pool.end();
+//     });
+// }
 
 // GET ALL USERS
+const getAllUsers = async (req, res) =>{
+    const getAllQuery = `SELECT * FROM app_user;`
+    const result = await pool.query(getAllQuery);
+    return result.rows;
+}
 
 
 // ADD USER TO DB
@@ -33,4 +38,4 @@ const addUser = async (req, res) =>{
 
 
 
-module.exports = { testQuery, addUser }
+module.exports = { addUser, getAllUsers }

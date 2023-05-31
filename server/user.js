@@ -30,13 +30,15 @@ userRouter.use('/:userId/budgets', budgetModule.budgetRouter);
 
 // Intercept any request to a route handler with the :userId parameter,
 // and check if the userId is valid or not.
-userRouter.param('userId', (req, res, next, id) => {
+userRouter.param('userId', async (req, res, next, id) => {
     
     let userId = Number(id);
 
+    const allUsers = await services.getAllUsers();
+
     // Check if a user object with this ID already exists
-    const userIndex = users.findIndex((element) => {
-        return element.id === userId;
+    const userIndex = allUsers.findIndex((element) => {
+        return Number(element.id) === userId;
     });
 
     if (userIndex === -1) {
@@ -45,19 +47,22 @@ userRouter.param('userId', (req, res, next, id) => {
     else {
         // creates a 'userIndex' on the request parameter and sets it's value.
         req.userIndex = userIndex;
+        // creates a 'user' on the request parameter and sets it's value.
+        req.user = allUsers[userIndex];
         next();
     }
 });
 
 
 // GET routes
-userRouter.get('/', (req, res, next) => {
+userRouter.get('/', async (req, res, next) => {
     // Return ALL users
-    res.status(200).send();
+    const allUsers = await services.getAllUsers();
+    res.status(200).send(allUsers);
 });
 
 userRouter.get('/:userId', (req, res, next) => {
-    res.status(200).send(users[req.userIndex]);
+    res.status(200).send(req.user);
 });
 
 // POST routes
@@ -69,8 +74,6 @@ userRouter.post('/', (req, res, next) => {
 
         // Add the user to the db
         services.addUser(newUser);
-
-        console.log(newUser);
 
         // Send back response along with new user object
         res.status(201).send(newUser);
