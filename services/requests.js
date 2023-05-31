@@ -21,7 +21,7 @@ pool.connect();
 // }
 
 // GET ALL USERS
-const getAllUsers = async (req, res) =>{
+const getAllUsers = async () =>{
     const getAllQuery = `SELECT * FROM app_user;`
     const result = await pool.query(getAllQuery);
     return result.rows;
@@ -29,13 +29,21 @@ const getAllUsers = async (req, res) =>{
 
 
 // ADD USER TO DB
-const addUser = async (req, res) =>{
-    const userName = req.userName;
-    const addQuery = `INSERT INTO app_user (name) VALUES ('${userName}');`;
+const addUser = async (user) =>{
+    const name = user.name;
+    const addQuery = `INSERT INTO app_user (name) VALUES ('${name}');`;
     await pool.query(addQuery);   
+}
+
+// UPDATE USER
+const updateUser = async (user) =>{
+    const id = user.id;
+    const name = user.name;
+    const updateQuery = `UPDATE app_user SET name='${name}' WHERE id=${id};`;
+    await pool.query(updateQuery);
 }
 
 
 
 
-module.exports = { addUser, getAllUsers }
+module.exports = { addUser, getAllUsers, updateUser }

@@ -54,21 +54,22 @@ userRouter.param('userId', async (req, res, next, id) => {
 });
 
 
-// GET routes
+// GET all users
 userRouter.get('/', async (req, res, next) => {
     // Return ALL users
     const allUsers = await services.getAllUsers();
     res.status(200).send(allUsers);
 });
 
+// GET user by their ID
 userRouter.get('/:userId', (req, res, next) => {
     res.status(200).send(req.user);
 });
 
 // POST routes
 userRouter.post('/', (req, res, next) => {
-    // Check if the request body contains a userName
-    if (req.body.userName) {
+    // Check if the request body contains a name
+    if (req.body.name) {
         // Create new User object using req.body
         const newUser = req.body;
 
@@ -83,16 +84,16 @@ userRouter.post('/', (req, res, next) => {
     }
 });
 
-// PUT routes
+// PUT routes - update a user's name
 userRouter.put('/:userId', (req, res, next) => {
-    // Edit user object
     // Check if the body's ID matches the URL param ID
     if (req.body.id === Number(req.params.userId)) {
-        users[req.userIndex] = req.body;
-        res.status(200).send(users[req.userIndex]);
+        const updatedUser = req.body;
+        services.updateUser(updatedUser);
+        res.status(200).send(updatedUser);
     }
     else {
-        res.status(409).send();
+        res.status(409).send("User id in body doesn't match id in URI");
     }
 });
 
