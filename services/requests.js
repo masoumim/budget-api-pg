@@ -85,7 +85,11 @@ const updateBudgetBalance = async (amount, id) =>{
     await pool.query(updateQuery);
 }
 
-
+// UPDATE BUDGET NAME
+const updateBudgetName = async (budgetName, id) =>{
+    const updateQuery = `UPDATE budget SET name='${budgetName}' WHERE id=${id};`;
+    await pool.query(updateQuery);
+}
 
 
 
@@ -99,5 +103,6 @@ module.exports = {
     addBudget,
     getBudget,
     getAllBudgets,
-    updateBudgetBalance
+    updateBudgetBalance,
+    updateBudgetName
 }

@@ -27,7 +27,6 @@ const budgetRouter = express.Router({ mergeParams: true });
 // Intercept any request to a route handler with the :budgetId parameter,
 // and check if the budgetId is valid or not.
 budgetRouter.param('budgetId', async (req, res, next, id) => {
-    console.log("middleware called");
     try {
         let budgetId = Number(id);
         const budget = await services.getBudget(budgetId);
@@ -155,16 +154,20 @@ budgetRouter.post('/transfer/:from/:to', async (req, res, next) => {
     }
 });
 
-// PUT routes - update budget
-budgetRouter.put('/:budgetId', (req, res, next) => {
-    // Check if the body's ID matches the URI param ID
-    // and Check that the body's userId matches the URI's userId param
-    if (req.body.id === Number(req.params.budgetId) && req.body.userId === Number(req.params.userId)) {
-        budgets[req.budgetIndex] = req.body;
-        res.status(200).send(budgets[req.budgetIndex]);
-    }
-    else {
-        res.status(409).send("Budget must belong to user and budget must be valid");
+// PUT routes - update budget name
+budgetRouter.put('/:budgetId', async (req, res, next) => {    
+    try {
+        // Check if the body's ID matches the URI param ID
+        // and Check that the body's userId matches the URI's userId param
+        if (req.body.id === Number(req.params.budgetId) && req.body.userId === Number(req.params.userId)) {
+            await services.updateBudgetName(req.body.name, req.body.id);
+            res.status(200).send("budget name updated");
+        }
+        else {
+            res.status(409).send("Budget must belong to user and budget must be valid");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
     }
 });
 
