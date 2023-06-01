@@ -7,16 +7,6 @@ const services = require('../services/requests.js');
 // Require in the utilities module
 const utils = require('../utils/utils.js');
 
-// Budgets array
-let budgets = [
-    { id: 1, name: "Groceries", balance: 100, userId: 1 },
-    { id: 2, name: "Car Payment", balance: 100, userId: 1 },
-    { id: 3, name: "Cellphone", balance: 80, userId: 1 },
-    { id: 4, name: "Entertainment", balance: 100, userId: 1 },
-    { id: 5, name: "Fast Food", balance: 100, userId: 2 },
-    { id: 6, name: "Bank Loan", balance: 100, userId: 2 }
-];
-
 // Create budgetRouter
 // mergeParams enables accessing route params belonging to to the 'parent route',
 // which in this example is the userRouter.
@@ -214,6 +204,34 @@ budgetRouter.delete('/:budgetId', async (req, res, next) => {
         res.status(500).send(`${error}`);
     }
 });
+
+// ADD BUDGET TRANSACTION
+// example: /api/users/userId:/budgets/:budgetId/transaction
+budgetRouter.post('/:budgetId/transaction', async (req, res, next) => {
+    try {
+        // Check for userId paramter in the URI    
+        // AND body contains a budgetId which matches the URI
+        if (req.params.userId && req.body.budgetId === Number(req.params.budgetId)) {
+            // Check if user has budget matching budgetId paramter            
+            const budget = await services.getBudget(req.params.budgetId);
+
+            if (budget.rows[0].app_user_id === Number(req.params.userId)) {
+                // Check if there is enough balance to execute the transfer
+                console.log("checking balance...");
+            }
+            else {
+                res.status(500).send("User doesn't have that budget");
+            }
+        }
+        else {
+            res.status(500).send("No budget specified and/or budgetId mismatch");
+        }
+
+
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
+})
 
 // Export budgetRouter
 module.exports = budgetRouter;
