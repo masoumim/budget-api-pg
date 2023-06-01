@@ -91,6 +91,18 @@ const updateBudgetName = async (budgetName, id) =>{
     await pool.query(updateQuery);
 }
 
+// DELETE USERS BUDGET BY ID
+const deleteBudget = async (budgetId) =>{
+    const deleteQuery = `DELETE FROM budget WHERE id =${budgetId};`;
+    await pool.query(deleteQuery);
+}
+
+// DELETE ALL USERS BUDGETS
+const deleteAllBudgets = async (userId) =>{
+    const deleteQuery = `DELETE FROM budget WHERE app_user_id=${userId};`;
+    await pool.query(deleteQuery);
+}
+
 
 
 
@@ -104,5 +116,7 @@ module.exports = {
     getBudget,
     getAllBudgets,
     updateBudgetBalance,
-    updateBudgetName
+    updateBudgetName,
+    deleteBudget,
+    deleteAllBudgets
 }

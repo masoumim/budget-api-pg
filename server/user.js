@@ -20,7 +20,7 @@ const userRouter = express.Router();
 // This now allows for a new route like: '/users/1/budgets'
 // The result is that accessing the route: 'api/users/:userId/budgets',
 // will trigger the budgetRouter's HTTP route handlers.
-userRouter.use('/:userId/budgets', budgetModule.budgetRouter);
+userRouter.use('/:userId/budgets', budgetModule);
 
 // Intercept any request to a route handler with the :userId parameter,
 // and check if the userId is valid or not.
@@ -60,7 +60,9 @@ userRouter.get('/:userId', (req, res, next) => {
 // POST routes
 userRouter.post('/', async (req, res, next) => {
     // Check if the request body contains a name
-    if (req.body.name) {
+    // AND doesn't have a key called 'balance' in the body
+    // This prevents budget's being added instead of a user.
+    if (req.body.name && !req.body.balance) {
         try {
             // Create new User object using req.body
             const newUser = req.body;
@@ -75,14 +77,16 @@ userRouter.post('/', async (req, res, next) => {
         }
     }
     else {
-        res.status(409).send("User must have a name");
+        res.status(409).send("request body must only contain a name");
     }
 });
 
 // PUT - update a user's name
 userRouter.put('/:userId', async (req, res, next) => {
     // Check if the body's ID matches the URL param ID
-    if (req.body.id === Number(req.params.userId)) {
+    // AND doesn't have a key in the body called 'balance'
+    // This prevents budgets being PUT instead of a user
+    if (req.body.id === Number(req.params.userId) && !req.body.balance) {
         try {
             const updatedUser = req.body;
             await services.updateUser(updatedUser);
@@ -92,17 +96,16 @@ userRouter.put('/:userId', async (req, res, next) => {
         }
     }
     else {
-        res.status(409).send("User id in body doesn't match id in URI");
+        res.status(409).send("request body must contain a name and an id that matches the URI");
     }
 });
 
 // DELETE user
+// example: /api/users/:userId
 userRouter.delete('/:userId', async (req, res, next) => {
-    // TODO: Delete budget objects belonging to this user.
-    // budgetModule.deleteBudgets(req.params.userId);
-
     // Delete user
     try {
+        await services.deleteAllBudgets(req.params.userId);
         await services.deleteUser(req.params.userId);
         res.status(200).send("User deleted successfully");
     } catch (error) {

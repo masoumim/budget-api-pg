@@ -44,6 +44,7 @@ budgetRouter.param('budgetId', async (req, res, next, id) => {
 });
 
 // GET ALL BUDGETS BELONGING TO A USER
+// example: /api/users/:userId/budgets
 budgetRouter.get('/', async (req, res, next) => {
     try {
         if (req.params.userId) {
@@ -59,6 +60,7 @@ budgetRouter.get('/', async (req, res, next) => {
 });
 
 // GET USER BUDGET BY ID
+// example: /api/users/:userId/budgets/:budgetId
 budgetRouter.get('/:budgetId', async (req, res, next) => {
     try {
         if (req.params.userId) {
@@ -78,11 +80,12 @@ budgetRouter.get('/:budgetId', async (req, res, next) => {
     }
 });
 
-// POST routes
-// Example: /api/user/1/budgets
+// POST A NEW BUDGET
+// Example: /api/user/:userId/budgets
 budgetRouter.post('/', async (req, res, next) => {
     // Check if the request body's userId matches the URI's userId param
-    if (req.body.userId === Number(req.params.userId)) {
+    // AND has a key in the request body called 'balance'
+    if (req.body.userId === Number(req.params.userId) && req.body.balance) {
         try {
             // Create new Budget object using req.body
             const newBudget = req.body;
@@ -96,14 +99,14 @@ budgetRouter.post('/', async (req, res, next) => {
             res.status(500).send(`${error}`);
         }
     }
-    else {
-        res.status(409).send("Budget must belong a to user");
+    else{
+        res.status(500).send("Must provide valid user and budget");
     }
 });
 
-// POST - transfer money between budgets
+// POST - TRANSFER MONEY BETWEEN BUDGETS
 // The amount is to transfer to sent via http Header key 'amount'
-// example: /api/users/1/budgets/transfer/1/2
+// example: /api/users/:userId/budgets/transfer/:from/:to
 budgetRouter.post('/transfer/:from/:to', async (req, res, next) => {
     try {
         // Check for userId in the URI
@@ -154,7 +157,8 @@ budgetRouter.post('/transfer/:from/:to', async (req, res, next) => {
     }
 });
 
-// PUT routes - update budget name
+// PUT - UPDATE BUDGET NAME
+// example: /api/users/:userId/budgets/:budgetId
 budgetRouter.put('/:budgetId', async (req, res, next) => {    
     try {
         // Check if the body's ID matches the URI param ID
@@ -171,18 +175,46 @@ budgetRouter.put('/:budgetId', async (req, res, next) => {
     }
 });
 
-// DELETE Budget
-budgetRouter.delete('/:budgetId', (req, res, next) => {
-    // Delete budget obj
-    budgets.splice(req.budgetIndex, 1);
-    res.status(200).send();
+// DELETE ALL BUDGETS BELONGING TO USER
+// example: /api/users/:userId/budgets
+budgetRouter.delete('/', async (req, res, next) => {
+    try {
+        // Check for a userId parameter in the URI
+        if (req.params.userId) {
+            await services.deleteAllBudgets(req.params.userId);
+            res.status(200).send("All budgets for user deleted successfully");
+        }
+        else {
+            res.status(500).send("No user specified");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
+})
+
+// DELETE BUDGET BY ID
+// example: /api/users/:userId/budgets/:budgetId
+budgetRouter.delete('/:budgetId', async (req, res, next) => {
+    try {
+        // Check for a userId parameter in the URI
+        if (req.params.userId) {
+            // Check if user has a budget with this budgetId
+            if (Number(req.params.userId) === req.budget.rows[0].app_user_id) {
+                await services.deleteBudget(req.params.budgetId);
+                res.status(200).send("Budget deleted successfully");
+            }
+            else {
+                res.status(500).send("User doesn't have that budget");
+            }
+        }
+        else {
+            res.status(500).send("No user specifed");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
 });
 
-// Deletes budgets belonging to user
-function deleteBudgets(userId) {
-    budgets = budgets.filter((element) => element.userId !== Number(userId));
-}
-
 // Export budgetRouter
-module.exports = { budgetRouter, deleteBudgets };
+module.exports = budgetRouter;
 

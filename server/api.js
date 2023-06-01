@@ -9,8 +9,8 @@ const userRouter = require('./user.js');
 apiRouter.use('/users', userRouter);
 
 // Mount budgetRouter
-const budgetModule = require('./budget.js');
-apiRouter.use('/budgets', budgetModule.budgetRouter);
+const budgetRouter = require('./budget.js');
+apiRouter.use('/budgets', budgetRouter);
 
 // Export the apiRouter
 module.exports = apiRouter;
