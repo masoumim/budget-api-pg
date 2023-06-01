@@ -1,6 +1,9 @@
 // Require in express module
 const express = require('express');
 
+// Require in the services/request module that handles interactions with the DB
+const services = require('../services/requests.js');
+
 // Require in the utilities module
 const utils = require('../utils/utils.js');
 
@@ -23,79 +26,83 @@ const budgetRouter = express.Router({mergeParams: true});
 
 // Intercept any request to a route handler with the :budgetId parameter,
 // and check if the budgetId is valid or not.
-budgetRouter.param('budgetId', (req, res, next, id) => {
-    
-    let budgetId = Number(id);
-    
-    // Check if a budget object with this ID already exists
-    const budgetIndex = budgets.findIndex((element) => {
-        return element.id === budgetId;
-    });
-
-    if (budgetIndex === -1) {
-        res.status(404).send('That budget does not exit');
-    }
-    else {
-        // creates a 'budgetIndex' on the request parameter and sets it's value.
-        req.budgetIndex = budgetIndex;        
-        next();
-    }
-});
-
-// GET routes
-budgetRouter.get('/', (req, res, next) => {
-    if (req.params.userId) {
-        // If the request contains a userId param, we only return the budgets belonging to that user.
-        const userBudgets = budgets.filter((element) => element.userId === Number(req.params.userId));
-        res.status(200).send(userBudgets);
-    }
-    else {
-        // Return ALL budgets
-        res.status(200).send(budgets);
-    }
-});
-
-budgetRouter.get('/:budgetId', (req, res, next) => {
-    // If there is a userId param, return a budget only if it belongs to that user.
-    if (req.params.userId) {
-        if (budgets[req.budgetIndex].userId === Number(req.params.userId)) {
-            res.status(200).send(budgets[req.budgetIndex]);
+budgetRouter.param('budgetId', async (req, res, next, id) => {
+    try {
+        let budgetId = Number(id);
+        const budget = await services.getBudget(budgetId);
+        if (budget.rowCount === 1) {
+            // creates a 'budget' on the request parameter and sets it's value.
+            req.budget = budget;
+            next();
         }
         else {
-            res.status(404).send('That User does not have that budget');
+            res.status(404).send("That budget does not exist");
         }
+    } catch (error) {
+        res.status(500).send(`${error}`);
     }
-    else {
-        res.status(200).send(budgets[req.budgetIndex]);
+});
+
+// GET ALL BUDGETS BELONGING TO A USER
+budgetRouter.get('/', async (req, res, next) => {
+    try {
+        if (req.params.userId) {
+            const userBudgets = await services.getAllBudgets(Number(req.params.userId));
+            res.status(200).send(userBudgets);
+        }
+        else {
+            res.status(500).send("No user specified");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
+});
+
+// GET USER BUDGET BY ID
+budgetRouter.get('/:budgetId', async (req, res, next) => {
+    try {
+        if (req.params.userId) {
+            // Check if this budget belongs to the user
+            if (Number(req.params.userId) === req.budget.rows[0].app_user_id) {
+                res.status(200).send(req.budget.rows[0]);
+            }
+            else {
+                res.status(500).send("Budget does not belong to user");
+            }
+        }
+        else {
+            res.status(500).send("No user specified");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
     }
 });
 
 // POST routes
-budgetRouter.post('/', (req, res, next) => {
+// Example: /api/user/1/budgets
+budgetRouter.post('/', async (req, res, next) => {
     // Check if the request body's userId matches the URI's userId param
     if (req.body.userId === Number(req.params.userId)) {
-        // Generate new ID
-        const newBudgetId = utils.generateId(budgets);
+        try {
+            // Create new Budget object using req.body
+            const newBudget = req.body;
 
-        // Create new Budget object using req.body
-        const newBudget = req.body;
+            // Add the budget object to the DB
+            await services.addBudget(newBudget);
 
-        // Set the ID of the new budget
-        newBudget.id = newBudgetId;
-
-        // Add the budget object to the budgets array
-        budgets.push(newBudget);
-
-        // Send back response along with new budget object
-        res.status(201).send(newBudget);
+            // Send back response along with new budget object
+            res.status(201).send(newBudget);
+        } catch (error) {
+            res.status(500).send(`${error}`);
+        }
     }
     else {
-        res.status(409).send("Budget must belong to user");
+        res.status(409).send("Budget must belong a to user");
     }
 });
 
 // POST - transfer money between budgets
-// example: /api//users/1/budgets/transfer/1/2
+// example: /api/users/1/budgets/transfer/1/2
 budgetRouter.post('/transfer/:from/:to', (req, res, next) => {
     // Check for userId in the URI
     if (req.params.userId) {

@@ -56,4 +56,42 @@ const deleteUser = async (id) =>{
     await pool.query(deleteQuery);
 }
 
-module.exports = { addUser, getAllUsers, getUser, updateUser, deleteUser }
+// GET ALL BUDGETS BELONGING TO A USER
+const getAllBudgets = async (userId) =>{
+    const getAllQuery = `SELECT * FROM budget WHERE app_user_id=${userId};`;
+    const result = await pool.query(getAllQuery);
+    return result.rows;
+}
+
+// GET USER BUDGET BY ID
+const getBudget = async (budgetId) =>{
+    const getBudgetQuery = `SELECT * FROM budget WHERE id=${budgetId};`;
+    const result = await pool.query(getBudgetQuery);
+    return result;
+}
+
+
+// ADD BUDGET TO DB
+const addBudget = async (budget) =>{
+    const name = budget.name;
+    const balance = budget.balance;
+    const userId = budget.userId;
+    const addQuery = `INSERT INTO budget (name, balance, app_user_id) VALUES ('${name}', ${balance}, ${userId});`;
+    await pool.query(addQuery);
+}
+
+
+
+
+
+
+module.exports = { 
+    addUser, 
+    getAllUsers, 
+    getUser, 
+    updateUser, 
+    deleteUser,
+    addBudget,
+    getBudget,
+    getAllBudgets
+}
