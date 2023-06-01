@@ -70,7 +70,6 @@ const getBudget = async (budgetId) =>{
     return result;
 }
 
-
 // ADD BUDGET TO DB
 const addBudget = async (budget) =>{
     const name = budget.name;
@@ -78,6 +77,12 @@ const addBudget = async (budget) =>{
     const userId = budget.userId;
     const addQuery = `INSERT INTO budget (name, balance, app_user_id) VALUES ('${name}', ${balance}, ${userId});`;
     await pool.query(addQuery);
+}
+
+// UPDATE BUDGET BALANCE
+const updateBudgetBalance = async (amount, id) =>{
+    const updateQuery = `UPDATE budget SET balance=${amount} WHERE id=${id};`;
+    await pool.query(updateQuery);
 }
 
 
@@ -93,5 +98,6 @@ module.exports = {
     deleteUser,
     addBudget,
     getBudget,
-    getAllBudgets
+    getAllBudgets,
+    updateBudgetBalance
 }

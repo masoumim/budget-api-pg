@@ -9,12 +9,12 @@ const utils = require('../utils/utils.js');
 
 // Budgets array
 let budgets = [
-    {id: 1, name: "Groceries", balance: 100, userId: 1},
-    {id: 2, name: "Car Payment", balance: 100, userId: 1},
-    {id: 3, name: "Cellphone", balance: 80, userId: 1},
-    {id: 4, name: "Entertainment", balance: 100, userId: 1},
-    {id: 5, name: "Fast Food", balance: 100, userId: 2},
-    {id: 6, name: "Bank Loan", balance: 100, userId: 2}
+    { id: 1, name: "Groceries", balance: 100, userId: 1 },
+    { id: 2, name: "Car Payment", balance: 100, userId: 1 },
+    { id: 3, name: "Cellphone", balance: 80, userId: 1 },
+    { id: 4, name: "Entertainment", balance: 100, userId: 1 },
+    { id: 5, name: "Fast Food", balance: 100, userId: 2 },
+    { id: 6, name: "Bank Loan", balance: 100, userId: 2 }
 ];
 
 // Create budgetRouter
@@ -22,11 +22,12 @@ let budgets = [
 // which in this example is the userRouter.
 // This requires nesting the budgetRouter (child) into the userRouter (parent),
 // which is done in the user.js file.
-const budgetRouter = express.Router({mergeParams: true});
+const budgetRouter = express.Router({ mergeParams: true });
 
 // Intercept any request to a route handler with the :budgetId parameter,
 // and check if the budgetId is valid or not.
 budgetRouter.param('budgetId', async (req, res, next, id) => {
+    console.log("middleware called");
     try {
         let budgetId = Number(id);
         const budget = await services.getBudget(budgetId);
@@ -102,36 +103,59 @@ budgetRouter.post('/', async (req, res, next) => {
 });
 
 // POST - transfer money between budgets
+// The amount is to transfer to sent via http Header key 'amount'
 // example: /api/users/1/budgets/transfer/1/2
-budgetRouter.post('/transfer/:from/:to', (req, res, next) => {
-    // Check for userId in the URI
-    if (req.params.userId) {
-        // Check if there are budgets that match the budget id parameters AND those bugdets belong to user.
-        if (budgets[Number(req.params.from - 1)] && budgets[Number(req.params.to - 1)] && budgets[Number(req.params.from - 1)].userId === Number(req.params.userId) && budgets[Number(req.params.to - 1)].userId === Number(req.params.userId)) {
-            // Deduct the amount from a budget if there is enough to deduct
-            if (budgets[Number(req.params.from) - 1].balance >= Number(req.params.from)) {
+budgetRouter.post('/transfer/:from/:to', async (req, res, next) => {
+    try {
+        // Check for userId in the URI
+        if (req.params.userId) {
+            // Get the user's budgets
+            const usersBudgets = await services.getAllBudgets(Number(req.params.userId));
+            // Check to see if this user has budgets that match the budget id's
+            const fromBudget = usersBudgets.find(budget => budget.app_user_id === Number(req.params.userId) && budget.id === Number(req.params.from));
+            const toBudget = usersBudgets.find(budget => budget.app_user_id === Number(req.params.userId) && budget.id === Number(req.params.to));
 
-                // Deduct from budget
-                budgets[Number(req.params.from) - 1].balance -= Number(req.headers.amount);
+            if (fromBudget && toBudget) {
+                // Do transfer                
+                // Convert fromBudget's balance from MONEY string to FLOAT
+                // Remove the '$' from the start of the string
+                const fromBudgetString = fromBudget.balance.substring(1);                
+                // Convert to float
+                const fromBudgetFloat = parseFloat(fromBudgetString);
 
-                // Add the amount to other budget
-                budgets[Number(req.params.to) - 1].balance += Number(req.headers.amount);
+                // Check if there is enough balance in fromBudget to do transfer
+                if (fromBudgetFloat >= Number(req.headers.amount)) {
+                    // deduct amount from fromBudget's balance                    
+                    const fromBudgetDeducted = fromBudgetFloat - parseFloat(req.headers.amount);                    
+                    await services.updateBudgetBalance(fromBudgetDeducted, fromBudget.id);
 
-                res.status(200).send();
+                    // Add amount to toBudget's balance
+                    const toBudgetString = toBudget.balance.substring(1);
+                    const toBudgetFloat = parseFloat(toBudgetString);
+                    const toBudgetAdded = toBudgetFloat + parseFloat(req.headers.amount);
+                    const response = await services.updateBudgetBalance(toBudgetAdded, toBudget.id);
+
+                    // return the updated budgets
+                    const updatedFromBudget = await services.getBudget(fromBudget.id);
+                    const updatedToBudget = await services.getBudget(toBudget.id);                    
+                    res.status(200).send(`Transfer complete: from budget ${fromBudget.id} = ${updatedFromBudget.rows[0].balance}, to budget ${toBudget.id} = ${updatedToBudget.rows[0].balance}`);
+                } else {
+                    res.send("Not enough money in account");
+                }
             }
             else {
-                res.status(409).send(`Not enough money in ${budgets[Number(req.params.from) - 1].name} budget`);
+                res.status(500).send("Budget not found");
             }
-        }else{
-            res.status(409).send("User doesn't have that budget");
         }
-    }
-    else {
-        res.status(409).send("Only users can transfer money between budgets");
+        else {
+            res.status(500).send("Only users can transfer money between budgets");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
     }
 });
 
-// PUT routes
+// PUT routes - update budget
 budgetRouter.put('/:budgetId', (req, res, next) => {
     // Check if the body's ID matches the URI param ID
     // and Check that the body's userId matches the URI's userId param
@@ -144,7 +168,7 @@ budgetRouter.put('/:budgetId', (req, res, next) => {
     }
 });
 
-// DELTE routes
+// DELETE Budget
 budgetRouter.delete('/:budgetId', (req, res, next) => {
     // Delete budget obj
     budgets.splice(req.budgetIndex, 1);
@@ -152,10 +176,10 @@ budgetRouter.delete('/:budgetId', (req, res, next) => {
 });
 
 // Deletes budgets belonging to user
-function deleteBudgets(userId){    
+function deleteBudgets(userId) {
     budgets = budgets.filter((element) => element.userId !== Number(userId));
 }
 
 // Export budgetRouter
-module.exports = {budgetRouter, deleteBudgets};
+module.exports = { budgetRouter, deleteBudgets };
 
