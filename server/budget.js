@@ -33,9 +33,11 @@ budgetRouter.param('budgetId', async (req, res, next, id) => {
     }
 });
 
+
+
 // GET ALL BUDGETS BELONGING TO A USER
 // example: /api/users/:userId/budgets
-budgetRouter.get('/', async (req, res, next) => {
+budgetRouter.get('/', async (req, res, next) => {    
     try {
         if (req.params.userId) {
             const userBudgets = await services.getAllBudgets(Number(req.params.userId));
@@ -51,7 +53,7 @@ budgetRouter.get('/', async (req, res, next) => {
 
 // GET USER BUDGET BY ID
 // example: /api/users/:userId/budgets/:budgetId
-budgetRouter.get('/:budgetId', async (req, res, next) => {
+budgetRouter.get('/:budgetId', async (req, res, next) => {    
     try {
         if (req.params.userId) {
             // Check if this budget belongs to the user
@@ -69,6 +71,12 @@ budgetRouter.get('/:budgetId', async (req, res, next) => {
         res.status(500).send(`${error}`);
     }
 });
+
+// GET BUDGET TRANSACTIONS FOR A USER
+// example: api/users/:userId/budgets/transactions
+budgetRouter.get('/transactions', async (req, res, next) =>{
+    console.log("testing route!");
+})
 
 // POST A NEW BUDGET
 // Example: /api/user/:userId/budgets
@@ -147,6 +155,58 @@ budgetRouter.post('/transfer/:from/:to', async (req, res, next) => {
     }
 });
 
+// ADD BUDGET TRANSACTION
+// example: /api/users/userId:/budgets/:budgetId/transaction
+budgetRouter.post('/:budgetId/transaction', async (req, res, next) => {
+    try {
+        // Check for userId paramter in the URI    
+        // AND body contains a budgetId which matches the URI
+        if (req.params.userId && req.body.budgetId === Number(req.params.budgetId)) {
+
+            // Check if user has budget matching budgetId paramter            
+            const budget = await services.getBudget(req.params.budgetId);
+            if (budget.rows[0].app_user_id === Number(req.params.userId)) {
+
+                // Check if there is enough balance to execute the transfer
+                // Remove the '$' from the start of the string
+                const budgetBalanceString = req.budget.rows[0].balance.substring(1);
+                // Convert to float
+                const budgetBalanceFloat = parseFloat(budgetBalanceString);
+
+                if (budgetBalanceFloat >= req.body.amount) {
+                    // Budget has enough balance, performing transaction
+                    // Deduct transaction amount from budget balance and update budget in DB
+                    const newBudgetBalance = budgetBalanceFloat - req.body.amount;
+                    await services.updateBudgetBalance(newBudgetBalance, req.body.budgetId);
+
+                    // Add transaction to the DB
+
+                    // Date - Format date to Postgres format: YYYY-MM-DD
+                    const date = new Date();
+                    const formattedDate = date.toISOString().split('T')[0];
+                    const formattedDateString = formattedDate.toString();
+
+                    // Add transaction to the DB
+                    await services.addTransaction(formattedDateString, req.body.amount, req.body.recipient, req.body.budgetId);
+
+                    res.status(200).send("Transaction completed successfully");
+                }
+                else {
+                    res.status(500).send("Sorry, you don't have enough balance in this budget to perform transaction");
+                }
+            }
+            else {
+                res.status(500).send("User doesn't have that budget");
+            }
+        }
+        else {
+            res.status(500).send("No budget specified and/or budgetId mismatch");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
+})
+
 // PUT - UPDATE BUDGET NAME
 // example: /api/users/:userId/budgets/:budgetId
 budgetRouter.put('/:budgetId', async (req, res, next) => {    
@@ -205,33 +265,7 @@ budgetRouter.delete('/:budgetId', async (req, res, next) => {
     }
 });
 
-// ADD BUDGET TRANSACTION
-// example: /api/users/userId:/budgets/:budgetId/transaction
-budgetRouter.post('/:budgetId/transaction', async (req, res, next) => {
-    try {
-        // Check for userId paramter in the URI    
-        // AND body contains a budgetId which matches the URI
-        if (req.params.userId && req.body.budgetId === Number(req.params.budgetId)) {
-            // Check if user has budget matching budgetId paramter            
-            const budget = await services.getBudget(req.params.budgetId);
 
-            if (budget.rows[0].app_user_id === Number(req.params.userId)) {
-                // Check if there is enough balance to execute the transfer
-                console.log("checking balance...");
-            }
-            else {
-                res.status(500).send("User doesn't have that budget");
-            }
-        }
-        else {
-            res.status(500).send("No budget specified and/or budgetId mismatch");
-        }
-
-
-    } catch (error) {
-        res.status(500).send(`${error}`);
-    }
-})
 
 // Export budgetRouter
 module.exports = budgetRouter;

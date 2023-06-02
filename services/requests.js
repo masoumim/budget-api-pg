@@ -103,6 +103,12 @@ const deleteAllBudgets = async (userId) =>{
     await pool.query(deleteQuery);
 }
 
+// ADD TRANSACTION BY BUDGET ID
+const addTransaction = async (date, amount, recipient, budgetId) =>{
+    const insertQuery = `INSERT INTO transaction (date, amount, recipient, budget_id) VALUES ('${date}', ${amount}, '${recipient}', ${budgetId});`;    
+    await pool.query(insertQuery);
+}
+
 
 
 
@@ -118,5 +124,6 @@ module.exports = {
     updateBudgetBalance,
     updateBudgetName,
     deleteBudget,
-    deleteAllBudgets
+    deleteAllBudgets,
+    addTransaction
 }
