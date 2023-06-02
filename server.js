@@ -23,7 +23,7 @@ app.use('/api',apiRouter);
 
 // Set welcome message on homepage
 app.get('/', (req, res, next) => {
-    res.status(200).send("Test")
+    res.status(200).send("Welcome - this project's back-end is finished. API documentation will be posted here soon, in the meantime check the github out here: https://github.com/masoumim/budget-api-pg")
 });
 
 // Start the server listening at PORT
