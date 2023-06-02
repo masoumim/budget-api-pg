@@ -129,6 +129,12 @@ const deleteTransactions = async (budgetId) =>{
     await pool.query(deleteQuery);
 }
 
+// DELETE ALL TRANSACTIONS FOR A USER
+const deleteAllTransactions = async (userId) =>{
+    const deleteQuery = `DELETE FROM transaction USING budget WHERE budget.app_user_id = ${userId} AND budget.id = transaction.budget_id;`;
+    await pool.query(deleteQuery);
+}
+
 
 module.exports = { 
     addUser, 
@@ -146,5 +152,6 @@ module.exports = {
     addTransaction,
     getAllTransactions,
     getTransactions,
-    deleteTransactions
+    deleteTransactions,
+    deleteAllTransactions
 }

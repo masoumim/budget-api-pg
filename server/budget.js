@@ -291,6 +291,32 @@ budgetRouter.delete('/:budgetId/transactions', async (req, res, next) => {
 })
 
 // DELETE ALL TRANSACTIONS FOR A USER
+// example: /api/user/userId:/budgets/transactions
+budgetRouter.delete('/transactions', async (req, res, next) => {
+    try {
+        // Check for userId parameter in the URI
+        if (req.params.userId) {
+            // Check if user has transactions to delete
+            const transactions = await services.getAllTransactions(Number(req.params.userId));
+            if (transactions.rows.length > 0) {
+
+                await services.deleteAllTransactions(Number(req.params.userId));
+
+                res.status(200).send("All transactions deleted successfully");
+            }
+            else {
+                res.status(500).send("No transactions to delete");
+            }
+
+        } else {
+            res.status(500).send("No user specified");
+        }
+
+
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
+})
 
 
 // DELETE ALL BUDGETS BELONGING TO USER
@@ -332,7 +358,6 @@ budgetRouter.delete('/:budgetId', async (req, res, next) => {
         res.status(500).send(`${error}`);
     }
 });
-
 
 
 // Export budgetRouter
