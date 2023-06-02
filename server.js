@@ -21,6 +21,11 @@ app.use(express.json());
 const apiRouter = require('./server/api');
 app.use('/api',apiRouter);
 
+// Set welcome message on homepage
+app.get('/', (req, res, next) => {
+    res.status(200).send("Test")
+});
+
 // Start the server listening at PORT
 app.listen(PORT, () => {
     console.log(`server is listening on ${PORT}`);
