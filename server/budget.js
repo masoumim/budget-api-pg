@@ -4,9 +4,6 @@ const express = require('express');
 // Require in the services/request module that handles interactions with the DB
 const services = require('../services/requests.js');
 
-// Require in the utilities module
-const utils = require('../utils/utils.js');
-
 // Create budgetRouter
 // mergeParams enables accessing route params belonging to to the 'parent route',
 // which in this example is the userRouter.

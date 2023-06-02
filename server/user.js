@@ -1,9 +1,6 @@
 // Require in express module
 const express = require('express');
 
-// Require in the utilities module
-const utils = require('../utils/utils.js');
-
 // Require in the services/request module that handles interactions with the DB
 const services = require('../services/requests.js');
 
