@@ -9,17 +9,6 @@ const pool = new Pool({
 
 pool.connect();
 
-// TEST QUERY - TODO: DELETE LATER
-// const testQuery = (req, res) => {
-//     pool.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
-//         if (err) throw err;
-//         for (let row of res.rows) {
-//             console.log(JSON.stringify(row));
-//         }
-//         pool.end();
-//     });
-// }
-
 // GET ALL USERS
 const getAllUsers = async () =>{
     const getAllQuery = `SELECT * FROM app_user;`
@@ -60,7 +49,7 @@ const deleteUser = async (id) =>{
 const getAllBudgets = async (userId) =>{
     const getAllQuery = `SELECT * FROM budget WHERE app_user_id=${userId};`;
     const result = await pool.query(getAllQuery);
-    return result.rows;
+    return result;
 }
 
 // GET USER BUDGET BY ID

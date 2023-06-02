@@ -35,11 +35,17 @@ budgetRouter.param('budgetId', async (req, res, next, id) => {
 
 // GET ALL BUDGETS BELONGING TO A USER
 // example: /api/users/:userId/budgets
-budgetRouter.get('/', async (req, res, next) => {    
+budgetRouter.get('/', async (req, res, next) => {
     try {
         if (req.params.userId) {
             const userBudgets = await services.getAllBudgets(Number(req.params.userId));
-            res.status(200).send(userBudgets);
+
+            if (userBudgets.rows.length > 0) {
+                res.status(200).send(userBudgets.rows);
+            }
+            else {
+                res.status(500).send("User has no budgets");
+            }
         }
         else {
             res.status(500).send("No user specified");
@@ -99,7 +105,7 @@ budgetRouter.get(`/:budgetId/transactions`, async (req, res, next) => {
 
 // GET USER BUDGET BY ID
 // example: /api/users/:userId/budgets/:budgetId
-budgetRouter.get('/:budgetId', async (req, res, next) => {    
+budgetRouter.get('/:budgetId', async (req, res, next) => {
     try {
         if (req.params.userId) {
             // Check if this budget belongs to the user
@@ -137,7 +143,7 @@ budgetRouter.post('/', async (req, res, next) => {
             res.status(500).send(`${error}`);
         }
     }
-    else{
+    else {
         res.status(500).send("Must provide valid user and budget");
     }
 });
@@ -151,33 +157,41 @@ budgetRouter.post('/transfer/:from/:to', async (req, res, next) => {
         if (req.params.userId) {
             // Get the user's budgets
             const usersBudgets = await services.getAllBudgets(Number(req.params.userId));
+
+            // console.log(usersBudgets);
+
             // Check to see if this user has budgets that match the budget id's
-            const fromBudget = usersBudgets.find(budget => budget.app_user_id === Number(req.params.userId) && budget.id === Number(req.params.from));
-            const toBudget = usersBudgets.find(budget => budget.app_user_id === Number(req.params.userId) && budget.id === Number(req.params.to));
+            const fromBudget = usersBudgets.rows.find(budget => budget.app_user_id === Number(req.params.userId) && budget.id === Number(req.params.from));
+            const toBudget = usersBudgets.rows.find(budget => budget.app_user_id === Number(req.params.userId) && budget.id === Number(req.params.to));
 
             if (fromBudget && toBudget) {
                 // Do transfer                
                 // Convert fromBudget's balance from MONEY string to FLOAT
                 // Remove the '$' from the start of the string
-                const fromBudgetString = fromBudget.balance.substring(1);                
+                let fromBudgetString = fromBudget.balance.substring(1);
+
+                // Remove any commas
+                fromBudgetString = fromBudgetString.replaceAll(',', '');
+
                 // Convert to float
                 const fromBudgetFloat = parseFloat(fromBudgetString);
 
                 // Check if there is enough balance in fromBudget to do transfer
                 if (fromBudgetFloat >= Number(req.headers.amount)) {
                     // deduct amount from fromBudget's balance                    
-                    const fromBudgetDeducted = fromBudgetFloat - parseFloat(req.headers.amount);                    
+                    const fromBudgetDeducted = fromBudgetFloat - parseFloat(req.headers.amount);
                     await services.updateBudgetBalance(fromBudgetDeducted, fromBudget.id);
 
                     // Add amount to toBudget's balance
-                    const toBudgetString = toBudget.balance.substring(1);
+                    let toBudgetString = toBudget.balance.substring(1);
+                    toBudgetString = toBudgetString.replaceAll(',', '');
                     const toBudgetFloat = parseFloat(toBudgetString);
                     const toBudgetAdded = toBudgetFloat + parseFloat(req.headers.amount);
                     const response = await services.updateBudgetBalance(toBudgetAdded, toBudget.id);
 
                     // return the updated budgets
                     const updatedFromBudget = await services.getBudget(fromBudget.id);
-                    const updatedToBudget = await services.getBudget(toBudget.id);                    
+                    const updatedToBudget = await services.getBudget(toBudget.id);
                     res.status(200).send(`Transfer complete: from budget ${fromBudget.id} = ${updatedFromBudget.rows[0].balance}, to budget ${toBudget.id} = ${updatedToBudget.rows[0].balance}`);
                 } else {
                     res.send("Not enough money in account");
@@ -209,7 +223,11 @@ budgetRouter.post('/:budgetId/transaction', async (req, res, next) => {
 
                 // Check if there is enough balance to execute the transfer
                 // Remove the '$' from the start of the string
-                const budgetBalanceString = req.budget.rows[0].balance.substring(1);
+                let budgetBalanceString = req.budget.rows[0].balance.substring(1);
+
+                // Remove any commas
+                budgetBalanceString = budgetBalanceString.replaceAll(',', '');
+
                 // Convert to float
                 const budgetBalanceFloat = parseFloat(budgetBalanceString);
 
@@ -220,7 +238,6 @@ budgetRouter.post('/:budgetId/transaction', async (req, res, next) => {
                     await services.updateBudgetBalance(newBudgetBalance, req.body.budgetId);
 
                     // Add transaction to the DB
-
                     // Date - Format date to Postgres format: YYYY-MM-DD
                     const date = new Date();
                     const formattedDate = date.toISOString().split('T')[0];
@@ -249,7 +266,7 @@ budgetRouter.post('/:budgetId/transaction', async (req, res, next) => {
 
 // PUT - UPDATE BUDGET NAME
 // example: /api/users/:userId/budgets/:budgetId
-budgetRouter.put('/:budgetId', async (req, res, next) => {    
+budgetRouter.put('/:budgetId', async (req, res, next) => {
     try {
         // Check if the body's ID matches the URI param ID
         // and Check that the body's userId matches the URI's userId param
@@ -325,7 +342,12 @@ budgetRouter.delete('/', async (req, res, next) => {
     try {
         // Check for a userId parameter in the URI
         if (req.params.userId) {
-            await services.deleteAllBudgets(req.params.userId);
+
+            // First delete all of users transactions
+            await services.deleteAllTransactions(Number(req.params.userId));
+
+            // Then delete all budgets belonging to user
+            await services.deleteAllBudgets(Number(req.params.userId));
             res.status(200).send("All budgets for user deleted successfully");
         }
         else {
@@ -344,6 +366,11 @@ budgetRouter.delete('/:budgetId', async (req, res, next) => {
         if (req.params.userId) {
             // Check if user has a budget with this budgetId
             if (Number(req.params.userId) === req.budget.rows[0].app_user_id) {
+
+                // First delete all of users transactions
+                await services.deleteAllTransactions(Number(req.params.userId));
+
+                // Then delete the budget
                 await services.deleteBudget(req.params.budgetId);
                 res.status(200).send("Budget deleted successfully");
             }

@@ -105,6 +105,7 @@ userRouter.put('/:userId', async (req, res, next) => {
 userRouter.delete('/:userId', async (req, res, next) => {
     // Delete user
     try {
+        await services.deleteAllTransactions(req.params.userId);
         await services.deleteAllBudgets(req.params.userId);
         await services.deleteUser(req.params.userId);
         res.status(200).send("User deleted successfully");
