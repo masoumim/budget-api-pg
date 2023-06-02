@@ -33,8 +33,6 @@ budgetRouter.param('budgetId', async (req, res, next, id) => {
     }
 });
 
-
-
 // GET ALL BUDGETS BELONGING TO A USER
 // example: /api/users/:userId/budgets
 budgetRouter.get('/', async (req, res, next) => {    
@@ -50,6 +48,56 @@ budgetRouter.get('/', async (req, res, next) => {
         res.status(500).send(`${error}`);
     }
 });
+
+// GET BUDGET TRANSACTIONS FOR A USER
+// example: api/users/:userId/budgets/transactions
+budgetRouter.get('/transactions', async (req, res, next) => {
+    try {
+        // Check for userId in URI
+        if (req.params.userId) {
+            // Get all users transaction
+            const userTransactions = await services.getAllTransactions(Number(req.params.userId));
+
+            if (userTransactions.rows.length > 0) {
+                res.status(200).send(userTransactions.rows);
+            } else {
+                res.status(500).send("No matching transactions");
+            }
+        }
+        else {
+            res.status(500).send("User not specified");
+        }
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
+})
+
+// GET BUDGET TRANSACTION FOR USER BY BUDGET ID
+// example: api/users/:userId/budgets/:budgetId/transactions
+budgetRouter.get(`/:budgetId/transactions`, async (req, res, next) => {
+    try {
+        // Check for userId in URI
+        if (req.params.userId) {
+            //Get transaction for budgetId
+            const userTransactions = await services.getTransaction(Number(req.params.userId), Number(req.params.budgetId));
+
+            console.log(userTransactions.rows.length);
+
+            if (userTransactions.rows.length > 0) {
+                res.status(200).send(userTransactions.rows);
+            }
+            else {
+                res.status(500).send("No matching transaction(s) for that budget")
+            }
+        }
+        else {
+            res.status(500).send("User not specified");
+        }
+
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
+})
 
 // GET USER BUDGET BY ID
 // example: /api/users/:userId/budgets/:budgetId
@@ -72,11 +120,7 @@ budgetRouter.get('/:budgetId', async (req, res, next) => {
     }
 });
 
-// GET BUDGET TRANSACTIONS FOR A USER
-// example: api/users/:userId/budgets/transactions
-budgetRouter.get('/transactions', async (req, res, next) =>{
-    console.log("testing route!");
-})
+
 
 // POST A NEW BUDGET
 // Example: /api/user/:userId/budgets

@@ -103,13 +103,25 @@ const deleteAllBudgets = async (userId) =>{
     await pool.query(deleteQuery);
 }
 
-// ADD TRANSACTION BY BUDGET ID
+// ADD TRANSACTION
 const addTransaction = async (date, amount, recipient, budgetId) =>{
     const insertQuery = `INSERT INTO transaction (date, amount, recipient, budget_id) VALUES ('${date}', ${amount}, '${recipient}', ${budgetId});`;    
     await pool.query(insertQuery);
 }
 
+// GET ALL TRANSACTIONS FOR USER
+const getAllTransactions = async (userId) =>{
+    const getQuery = `SELECT transaction.id, transaction.date, transaction.amount, transaction.recipient, transaction.budget_id FROM transaction JOIN budget ON transaction.budget_id = budget.id JOIN app_user ON budget.app_user_id = app_user.id WHERE app_user.id = ${userId};`;
+    const result = await pool.query(getQuery);
+    return result;
+}
 
+// GET SINGLE TRANSACTION FOR USER BY BUDGETID
+const getTransaction = async (userId, budgetId) =>{
+    const getQuery = `SELECT transaction.id, transaction.date, transaction.amount, transaction.recipient, transaction.budget_id FROM transaction JOIN budget ON transaction.budget_id = budget.id JOIN app_user ON budget.app_user_id = app_user.id WHERE app_user.id = ${userId} AND budget.id = ${budgetId};`;
+    const result = await pool.query(getQuery);
+    return result;
+}
 
 
 module.exports = { 
@@ -125,5 +137,7 @@ module.exports = {
     updateBudgetName,
     deleteBudget,
     deleteAllBudgets,
-    addTransaction
+    addTransaction,
+    getAllTransactions,
+    getTransaction
 }
