@@ -117,10 +117,16 @@ const getAllTransactions = async (userId) =>{
 }
 
 // GET SINGLE TRANSACTION FOR USER BY BUDGETID
-const getTransaction = async (userId, budgetId) =>{
+const getTransactions = async (userId, budgetId) =>{
     const getQuery = `SELECT transaction.id, transaction.date, transaction.amount, transaction.recipient, transaction.budget_id FROM transaction JOIN budget ON transaction.budget_id = budget.id JOIN app_user ON budget.app_user_id = app_user.id WHERE app_user.id = ${userId} AND budget.id = ${budgetId};`;
     const result = await pool.query(getQuery);
     return result;
+}
+
+// DELETE TRANSACTIONS FOR A GIVEN BUDGETID
+const deleteTransactions = async (budgetId) =>{
+    const deleteQuery = `DELETE FROM transaction WHERE budget_id =${budgetId};`;
+    await pool.query(deleteQuery);
 }
 
 
@@ -139,5 +145,6 @@ module.exports = {
     deleteAllBudgets,
     addTransaction,
     getAllTransactions,
-    getTransaction
+    getTransactions,
+    deleteTransactions
 }

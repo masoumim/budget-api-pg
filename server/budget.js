@@ -79,9 +79,7 @@ budgetRouter.get(`/:budgetId/transactions`, async (req, res, next) => {
         // Check for userId in URI
         if (req.params.userId) {
             //Get transaction for budgetId
-            const userTransactions = await services.getTransaction(Number(req.params.userId), Number(req.params.budgetId));
-
-            console.log(userTransactions.rows.length);
+            const userTransactions = await services.getTransactions(Number(req.params.userId), Number(req.params.budgetId));
 
             if (userTransactions.rows.length > 0) {
                 res.status(200).send(userTransactions.rows);
@@ -119,8 +117,6 @@ budgetRouter.get('/:budgetId', async (req, res, next) => {
         res.status(500).send(`${error}`);
     }
 });
-
-
 
 // POST A NEW BUDGET
 // Example: /api/user/:userId/budgets
@@ -268,6 +264,34 @@ budgetRouter.put('/:budgetId', async (req, res, next) => {
         res.status(500).send(`${error}`);
     }
 });
+
+// DELETE TRANSACTION(S) FOR A BUDGET
+// example: /api/users/:userId/budgets/:budgetId/transactions
+budgetRouter.delete('/:budgetId/transactions', async (req, res, next) => {
+    try {
+        // Check for userId parameter in URI                
+        if (req.params.userId) {
+            // Check if user has transactions for this budgetId to delete
+            const transactions = await services.getTransactions(Number(req.params.userId), Number(req.params.budgetId));
+            if (transactions.rows.length > 0) {
+                await services.deleteTransactions(Number(req.params.budgetId));
+                res.status(200).send("All transactions for that budget successfully deleted");
+            }
+            else {
+                res.status(500).send("No matching transactions to delete")
+            }
+        }
+        else {
+            res.status(500).send("No user specified");
+        }
+
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
+})
+
+// DELETE ALL TRANSACTIONS FOR A USER
+
 
 // DELETE ALL BUDGETS BELONGING TO USER
 // example: /api/users/:userId/budgets
