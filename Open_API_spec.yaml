@@ -1,0 +1,628 @@
+openapi: 3.0.1
+info:
+  title: Budget API
+  version: 1.0.0
+  description: >-
+    A simple budget API that lets users manage budgets for different spending
+    categories
+paths:
+  /api/users:
+    summary: Get all users from the database
+    description: Retrieves all users from the database
+    get:
+      summary: Gets all users from the database
+      description: Retrieves all users in the database
+      operationId: get_users
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                get_users:
+                  value: |2-
+                        {
+                            "id": 4,
+                            "name": "Maxwell"
+                        },
+                        {
+                            "id": 6,
+                            "name": "Joe"
+                        }
+          description: Successful sample response
+        '404':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                user not found:
+                  value: That user does not exist
+          description: Unsucessfull sample response
+      tags:
+        - Users
+    post:
+      summary: Add user to the database
+      description: Inserts the user into the database
+      operationId: add_user
+      responses:
+        '201':
+          content:
+            application/json:
+              examples:
+                added user:
+                  value: |2-
+                        {
+                            "id": 1,
+                            "name": "Mark"
+                        }
+          description: Successful sample response
+        '409':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                post error:
+                  value: request body must only contain a name
+          description: Unsuccessful sample reponse
+      tags:
+        - User
+  /api/users/{userId}:
+    summary: Gets a user by id
+    description: Retrieves a user by their unique ID number from the database
+    get:
+      summary: Gets a specific user by their ID
+      description: Retrieves a user from the database by their unique ID number
+      operationId: get_user
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                get_user:
+                  value: |-
+                    {
+                            "id": 6,
+                            "name": "Maxwell"
+                        }
+          description: Successful error sample response
+        '404':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                user not found:
+                  value: That user does not exist
+          description: Unsuccessful sample response
+      tags:
+        - User
+    put:
+      summary: Updates a users name
+      description: Updates the database and sets the users name
+      operationId: update_user
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                updated user:
+                  value: |2-
+                        {
+                            "id": 6,
+                            "name": "Mary"
+                        }
+          description: Successful sample response
+        '409':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                error response:
+                  value: >-
+                    request body must contain a name and an id that matches the
+                    URI
+          description: Unsuccessful sample response
+      tags:
+        - User
+    delete:
+      summary: Deletes user from the database
+      description: Deletes user from the users database based on the provided ID
+      operationId: delete_user
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                successful delete:
+                  value: User deleted successfully
+          description: Successful sample response
+        '404':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                user not found:
+                  value: That user does not exist
+          description: Unsuccessful sample response
+      tags:
+        - User
+  /api/users/{userId}/budgets:
+    summary: Get the budgets belonging to a user
+    description: Retrieves all of the budgets that belong to the user
+    get:
+      summary: Gets budgets belonging to user
+      description: Retrieves all of the budgets from the database that belong to this user
+      operationId: get_budgets
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                users budgets:
+                  value: |-
+                    {
+                        "name": "Food budget",
+                        "balance": 1000,
+                        "userId": 6
+                    }
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                get user budget error:
+                  value: '"No user specified in request body"'
+          description: Unsuccessful sample response
+      tags:
+        - budgets
+    post:
+      summary: Adds a new budget
+      description: Inserts a new budget into the database
+      operationId: add_budget
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          content:
+            application/json:
+              examples:
+                add_budget:
+                  value: |-
+                    {
+                        "name": "Car budget",
+                        "balance": 1000,
+                        "userId": 6
+                    }
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                invalid user or budget:
+                  value: Must provide valid user and budget
+          description: Unsuccessful sample response
+      tags:
+        - Budget
+    delete:
+      summary: Delete all user budgets
+      description: Deletes all of the users budgets from the database
+      operationId: delete_all_budgets
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                delete_all_budgets:
+                  value: All budgets for user deleted successfully
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                deletion error:
+                  value: No user specified
+          description: Unsuccessful sample response
+      tags:
+        - Budgets
+  /api/users/{userId}/budgets/transactions:
+    summary: gets all transactions belonging to a user
+    description: Retrieves all of the transactions from the database belonging to user
+    get:
+      summary: gets all transactions belonging to a user
+      description: >-
+        Retrieves all of the transactions from the database that belong to a
+        user
+      operationId: get_transactions
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                users transactions:
+                  value: |2-
+                        {
+                            "id": 57,
+                            "date": "2023-06-03T04:00:00.000Z",
+                            "amount": "$100.00",
+                            "recipient": "Grocery store",
+                            "budget_id": 27
+                        },
+                        {
+                            "id": 58,
+                            "date": "2023-06-03T04:00:00.000Z",
+                            "amount": "$100.00",
+                            "recipient": "Grocery store 2",
+                            "budget_id": 27
+                        },
+                        {
+                            "id": 59,
+                            "date": "2023-06-03T04:00:00.000Z",
+                            "amount": "$100.00",
+                            "recipient": "Grocery store 3",
+                            "budget_id": 27
+                        }
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                User not specified:
+                  value: No User specified
+          description: Unsuccessful sample response
+      tags:
+        - Transactions
+    delete:
+      summary: Deletes all transactions
+      description: Will delete all of the transactions for a user
+      operationId: delete_all_transactions
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                delete_all_transactions:
+                  value: All transactions deleted successfully
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                'unable to delete transactions ':
+                  value: No transactions to delete
+          description: Unsuccessful sample response
+      tags:
+        - Transactions
+  /api/users/{userId}/budgets/{budgetId}/transactions:
+    summary: Get users transactions for a given budget
+    description: Retrieves all of the transactions belonging to a single budget
+    get:
+      summary: Gets all the transactions for a users budget
+      description: Retrieves all of the transactions that belong to a users specific budget
+      operationId: get_transactions_for_budget
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+        - name: budgetId
+          in: path
+          description: The id of the budget.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                transactions for a budget:
+                  value: |2-
+                        {
+                            "id": 57,
+                            "date": "2023-06-03T04:00:00.000Z",
+                            "amount": "$100.00",
+                            "recipient": "Grocery store",
+                            "budget_id": 27
+                        },
+                        {
+                            "id": 58,
+                            "date": "2023-06-03T04:00:00.000Z",
+                            "amount": "$100.00",
+                            "recipient": "Grocery store 2",
+                            "budget_id": 27
+                        },
+                        {
+                            "id": 59,
+                            "date": "2023-06-03T04:00:00.000Z",
+                            "amount": "$100.00",
+                            "recipient": "Grocery store 3",
+                            "budget_id": 27
+                        }
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                no transactions for budget:
+                  value: No matching transaction(s) for that budget
+          description: Unsuccessful sample response
+      tags:
+        - Transactions
+    delete:
+      summary: Deletes transaction(s) for a given budget
+      description: Will delete all transaction(s) for a given budget from the database
+      operationId: delete_transactions
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+        - name: budgetId
+          in: path
+          description: The id of the budget.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                transactions deleted:
+                  value: All transactions for that budget successfully deleted
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                delete unsuccessful:
+                  value: No matching transactions to delete
+          description: Unsuccessful sample response
+      tags:
+        - Transactions
+  /api/users/{userId}/budgets/{budgetId}:
+    summary: Gets users budget by ID
+    description: Gets the budget for a user by budget id
+    get:
+      summary: Gets the users budget
+      description: Retrieves a budget belonging to a user by budget id
+      operationId: get_budget
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+        - name: budgetId
+          in: path
+          description: The id of the budget.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                user budget:
+                  value: |-
+                    {
+                        "id": 27,
+                        "name": "Food budget",
+                        "balance": "$700.00",
+                        "app_user_id": 6
+                    }
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                no budget found:
+                  value: Budget does not belong to user
+          description: Unsuccessful sample response
+      tags:
+        - Budget
+    put:
+      summary: Update a budget
+      description: Updates the budget name and saves change to the database
+      operationId: update_budget
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+        - name: budgetId
+          in: path
+          description: The id of the budget.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                update budget:
+                  value: Budget name updated
+          description: Successful sample response
+        '409':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                can't update budget:
+                  value: Budget must belong to user and budget must be valid
+          description: Unsuccessful sample response
+      tags:
+        - Budget
+    delete:
+      summary: 'Deletes a single budget '
+      description: Deletes a users budget by budget id
+      operationId: delete_budget
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+        - name: budgetId
+          in: path
+          description: The id of the budget.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                budget deleted:
+                  value: Budget deleted successfully
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                deletion error:
+                  value: User doesn't have that budget
+          description: Unsuccessful sample response
+      tags:
+        - Budget
+  /api/users/{userId}/budgets/transfer/{from}/{to}:
+    summary: Transfer money from one budget to another
+    description: >-
+      Transfers an amount defined in the HTTP header key 'amount' between a
+      users budgets
+    post:
+      summary: Transfers money between user budgets
+      description: Performs a money transfer from one user budget to another
+      operationId: budget_transfer
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+        - name: from
+          in: path
+          description: The id of the from budget.
+          required: true
+          schema:
+            type: string
+        - name: to
+          in: path
+          description: The id of the to budget.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                transfer complete:
+                  value: 'Transfer complete: from budget 1 = $100, to budget $2 = $50'
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                unable to transfer:
+                  value: Not enough money in account
+          description: Unsuccessful sample response
+      tags:
+        - Budgets
+  /api/users/{userId}/budgets/{budgetId}/transaction:
+    summary: Add a transaction for a budget
+    description: Will insert a transaction into the database for a given budget
+    post:
+      summary: Adds a transaction to a budget
+      description: Inserts a transaction into the database for a given budget
+      operationId: add_transaction
+      parameters:
+        - name: userId
+          in: path
+          description: The id of the user.
+          required: true
+          schema:
+            type: string
+        - name: budgetId
+          in: path
+          description: The id of the from budget.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                added transaction:
+                  value: Transaction completed successfully
+          description: Successful sample response
+        '500':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                unsuccessful transaction:
+                  value: >-
+                    Sorry, you don't have enough balance in this budget to
+                    perform transaction
+          description: Unsuccessful sample response
+      tags:
+        - Transaction
