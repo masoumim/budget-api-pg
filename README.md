@@ -33,7 +33,7 @@ To view the .yaml file using Swagger, first download the Swagger editor from the
 If you downloaded the Swagger editor, simply open the index.html file located in folder. From there you can import the .yaml file by going to FILE > IMPORT FILE.
 
 # Endpoints:
-==========
+
 
 Base URL: http://budget-api-pg.herokuapp.com/
 
