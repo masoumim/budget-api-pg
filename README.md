@@ -77,12 +77,6 @@ Budgets
 /api/users/:userId/budgets/:budgetId -- GET a single budget by budget ID
 
 
-/api/users/:userId/budgets/transactions
-
-
-/api/users/:userId/budgets/:budgetId/transactions
-
-
 **Post:**
   
 
@@ -90,9 +84,6 @@ Budgets
 
 
 /api/users/:userId/transfer/:budgetId/:budgetId -- Transfer money from one account to another -- (amount to transfer is specified in the HTTP Header key 'amount')
-
-
-/api/users/userId:/budgets/:budgetId/transaction
 
 
 **Put:**
@@ -103,12 +94,6 @@ Budgets
 
 **Delete:**
   
-
-/api/users/:userId/budgets/:budgetId/transactions
-
-
-/api/user/userId:/budgets/transactions
-
 
 /api/users/:userId/budgets -- DELETE all of a user's budgets
 
