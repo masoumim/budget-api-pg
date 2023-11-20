@@ -1,6 +1,8 @@
 ﻿# budget-api-pg
 An API for creating, getting, updating and deleting budgets built using ExpressJS and NodeJS.
 
+**NOTE: (November 20, 2023) This project has been removed from Heroku / Heroku PostgreSQL hosting**
+
 # Project technical stack:
 Language: Node.js / JavaScript
 
@@ -13,7 +15,7 @@ This project is a simple back-end API for managing and creating various budgets 
 
 Users, Budgets and Transactions are all saved persistently using a Heroku hosted PostgreSQL database.
 
-To use the API, navigate to the base URL at http://budget-api-pg.herokuapp.com/.
+~~To use the API, navigate to the base URL at http://budget-api-pg.herokuapp.com/.~~
 
 This project does not utilize a client or front-end. 
 To interact with the API use Postman (https://www.postman.com/) to make requests.
@@ -35,7 +37,7 @@ If you downloaded the Swagger editor, simply open the index.html file located in
 # Endpoints:
 
 
-Base URL: http://budget-api-pg.herokuapp.com/
+~~Base URL: http://budget-api-pg.herokuapp.com/~~
 
 Users
 ------
